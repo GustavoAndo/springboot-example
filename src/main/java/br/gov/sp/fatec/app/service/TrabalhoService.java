@@ -10,7 +10,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.gov.sp.fatec.app.entity.Trabalho;
 import br.gov.sp.fatec.app.repository.TrabalhoRepository;
-import jakarta.transaction.Transactional;
 
 @Service
 public class TrabalhoService {
@@ -18,9 +17,7 @@ public class TrabalhoService {
     @Autowired
     private TrabalhoRepository trabalhoRepository;
 
-    @Transactional
     public Trabalho novoTrabalho(Trabalho trabalho) {
-        try {
             if(trabalho == null ||
                     trabalho.getTitulo() == null ||
                     trabalho.getTitulo().isBlank() ||
@@ -30,12 +27,13 @@ public class TrabalhoService {
                 throw new IllegalArgumentException("Dados inválidos!");
             }
 
-            trabalho = trabalhoRepository.save(trabalho);
+            try {
+                trabalho = trabalhoRepository.save(trabalho);
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao inserir trabalho!");
+            }
 
             return trabalho;
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao inserir trabalho!");
-        }
     }
 
     public List<Trabalho> buscarTodosTrabalhos() {
@@ -46,16 +44,23 @@ public class TrabalhoService {
         }
     }
 
-    public Trabalho buscarTrabalhoPorId(Long id) {
-        try {
-            Optional<Trabalho> trabalhoOp = trabalhoRepository.findById(id);
-            if (trabalhoOp.isEmpty()) {
-                throw new IllegalArgumentException("Trabalho não encontrado.");
-            }
-            return trabalhoOp.get();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao buscar trabalho!");
+    public Trabalho buscarTrabalhoPorId(Long id) {     
+        Optional<Trabalho> trabalhoOp = trabalhoRepository.findById(id);
+        if (trabalhoOp.isEmpty()) {
+            throw new IllegalArgumentException("Trabalho não encontrado.");
         }
+        return trabalhoOp.get();
+    }
+
+    public Trabalho buscarTrabalhoPorNomeNota(String titulo, Integer nota) {
+        if (titulo == "" || titulo.isEmpty()) {
+            throw new IllegalArgumentException("Dados inválidos!");
+        }
+        Optional<Trabalho> trabalhoOp = trabalhoRepository.findByTituloAndNotaGreaterThan(titulo, nota);
+        if (trabalhoOp.isEmpty()) {
+            throw new IllegalArgumentException("Trabalho não encontrado.");
+        } 
+        return trabalhoOp.get();
     }
 
 }

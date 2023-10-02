@@ -36,5 +36,10 @@ public class TrabalhoController {
     public Trabalho buscarPorId(@PathVariable("id") Long id) {
         return service.buscarTrabalhoPorId(id);
     }
+
+    @GetMapping(value= "/{titulo}/{nota}")
+    public Trabalho buscarPorTituloNota(@PathVariable("titulo") String titulo, @PathVariable("nota") Integer nota) {
+        return service.buscarTrabalhoPorNomeNota(titulo, nota);
+    }
     
 }
